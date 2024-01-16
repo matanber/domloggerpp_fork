@@ -115,8 +115,8 @@ const getRow = (debugLine) => {
     } else if (debugLine) {
         debugLine = debugLine.split("@")[1];
     }
-    row = parseInt(debugLine.split(":").slice(0, -2).at(-2));;
-    return row;
+    row = parseInt(debugLine.split(":").at(-2));
+    return row || 0;
 }
 
 const getCol = (debugLine) => {
@@ -126,8 +126,8 @@ const getCol = (debugLine) => {
     } else if (debugLine) {
         debugLine = debugLine.split("@")[1];
     }
-    col = parseInt(debugLine.split(":").slice(0, -2).at(-1));
-    return col;
+    col = parseInt(debugLine.split(":").at(-1));
+    return col || 0;
 }
 
 const downloadData = (filename, data) => {

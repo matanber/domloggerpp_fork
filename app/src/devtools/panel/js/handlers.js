@@ -45,7 +45,8 @@ function handleShowTrace() {
         // extensionAPI.runtime.sendMessage({ action: "openURL", data: url, tabId: extensionAPI.devtools.inspectedWindow.tabId });
 
         const jquery_this = $(this);
-        console.log(`${jquery_this.data("url")}:${jquery_this.data("row")}:${jquery_this.data("col")}`);
+        const url_with_location = `${jquery_this.data("url")}:${jquery_this.data("row")}:${jquery_this.data("col")}`;
+        extensionAPI.devtools.inspectedWindow.eval("console.log('DOMLogger++ Showing URL: '+" + JSON.stringify(url_with_location) + ")");
         extensionAPI.devtools.panels.openResource(jquery_this.data("url"), parseInt(jquery_this.data("row")), parseInt(jquery_this.data("col")))
     });
 }
