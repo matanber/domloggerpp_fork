@@ -3,6 +3,8 @@ const extensionAPI = typeof browser !== "undefined" ? browser : chrome;
 
 import {
     getLink,
+    getRow,
+    getCol,
     downloadData,
     colorFilter,
     colorData,
@@ -31,16 +33,20 @@ function handleShowTrace() {
     $("#modal-content").html(`
     <span class="close">&times;</span>
     <h3 class="mgb-30">Stack trace</h3>
-    ${dataTrace.map(l => `<p><a href="#" class="no-deco open-view-source" data-url="${getLink(l)}" target="_blank">${l}</a></p>`).join("")}
+    ${dataTrace.map(l => `<p><a href="#" class="no-deco open-view-source" data-url="${getLink(l)}" data-row="${getRow(l)}" data-col="${getCol(l)}" target="_blank">${l}</a></p>`).join("")}
     `);
     $("#modal").css("display", "block");
 
     // Chromium blocks a tag to open view-source link from extension's devtools
     $(".open-view-source").on("click", function(e) {
         e.preventDefault();
-        const url = "view-source:" + $(this).data("url");
-        // Firefox block extensionAPI.tabs.create in devtools
-        extensionAPI.runtime.sendMessage({ action: "openURL", data: url, tabId: extensionAPI.devtools.inspectedWindow.tabId });
+        // const url = "view-source:" + $(this).data("url");
+        // // Firefox block extensionAPI.tabs.create in devtools
+        // extensionAPI.runtime.sendMessage({ action: "openURL", data: url, tabId: extensionAPI.devtools.inspectedWindow.tabId });
+
+        const jquery_this = $(this);
+        console.log(`${jquery_this.data("url")}:${jquery_this.data("row")}:${jquery_this.data("col")}`);
+        extensionAPI.devtools.panels.openResource(jquery_this.data("url"), parseInt(jquery_this.data("row")), parseInt(jquery_this.data("col")))
     });
 }
 

@@ -3,7 +3,7 @@
     --text-color: #C6C6CA;
     --highlight-color: red;
     --font-familly: courier, monospace;
-    --font-size: 18px;
+    --font-size: 14px;
     --border: 1px solid;
     --border-radius: 5px;
 }
@@ -99,6 +99,10 @@ div.dataTables_filter input {
     width: 350px;
     font-family: var(--font-familly);
     font-size: var(--font-size);
+}
+
+.breal-all { /* Allow breaks in hrefs */
+    word-break: break-all;
 }
 
 .remove-one {

@@ -18,10 +18,29 @@ function renderDate(data, type) {
     return data;
 }
 
+function truncateString(str, maxLength) {
+    if (str.length <= maxLength) {
+      return str;
+    }
+  
+    const ellipsis = '…';
+    const truncatedLength = maxLength - ellipsis.length;
+  
+    const leftLength = Math.ceil(truncatedLength / 2);
+    const rightLength = Math.floor(truncatedLength / 2);
+  
+    const leftSubstring = str.substring(0, leftLength);
+    const rightSubstring = str.substring(str.length - rightLength);
+  
+    return leftSubstring + ellipsis + rightSubstring;
+}
+
 function renderHref(data, type, row) {
     if (type === "display") {
         let href = new URL(row.href);
-        data = `<span class="filter-span">${sanitizeHtml(href.origin + href.pathname)}</span>&nbsp;<img src="./img/arrow-up-right-from-square-solid.svg" data-href="${sanitizeHtml(row.href)}" width="15px" class="goto-link svg-color">`;
+        const origin_and_path = href.origin + href.pathname;
+        const truncated = truncateString(origin_and_path, 60);
+        data = `<span class="filter-span break-all">${sanitizeHtml(truncated)}</span>&nbsp;<img src="./img/arrow-up-right-from-square-solid.svg" data-href="${sanitizeHtml(row.href)}" width="15px" class="goto-link svg-color">`;
     }
     return data;
 }

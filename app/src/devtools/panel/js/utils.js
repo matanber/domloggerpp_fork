@@ -108,6 +108,28 @@ const getLink = (debugLine) => {
     return link;
 }
 
+const getRow = (debugLine) => {
+    var row = 0;
+    if (debugLine && extensionAPI === chrome) {
+        debugLine = debugLine.split("(").pop().slice(0, -1);
+    } else if (debugLine) {
+        debugLine = debugLine.split("@")[1];
+    }
+    row = parseInt(debugLine.split(":").slice(0, -2).at(-2));;
+    return row;
+}
+
+const getCol = (debugLine) => {
+    var col = 0;
+    if (debugLine && extensionAPI === chrome) {
+        debugLine = debugLine.split("(").pop().slice(0, -1);
+    } else if (debugLine) {
+        debugLine = debugLine.split("@")[1];
+    }
+    col = parseInt(debugLine.split(":").slice(0, -2).at(-1));
+    return col;
+}
+
 const downloadData = (filename, data) => {
     var e = document.createElement("a");
     e.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(data));
@@ -126,5 +148,7 @@ export {
     colorData,
     colorFilter,
     getLink,
+    getRow,
+    getCol,
     downloadData
 }
