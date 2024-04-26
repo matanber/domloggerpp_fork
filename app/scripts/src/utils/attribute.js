@@ -1,7 +1,7 @@
-const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs } = require("./utils");
+const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs, execCode } = require("./utils");
 
-const proxyAttribute = (type, target) => {
-    const config = getConfig(target);
+const proxyAttribute = (hook, type, target) => {
+    const config = getConfig(hook, type, target);
     const propProxy = target.split(":");
     target = propProxy.pop();
     const [ obj, attr ] = getTargets(target.split("."));
@@ -58,12 +58,11 @@ const proxyAttribute = (type, target) => {
             }
 
             if (propProxy.includes("get")) {
-                if (config["hookFunction"])
-                    output = Function("output", config["hookFunction"])(output);
+                output = execCode(config["hookFunction"], output);
 
-                log(type,
+                log(hook, type,
                     `${this.nodeName ? `get:${this.nodeName.toLowerCase()}.${attr}` : target}`,
-                    JSON.stringify(output),
+                    output,
                     config
                 );
             }
@@ -73,14 +72,12 @@ const proxyAttribute = (type, target) => {
             if(propProxy.includes("set") && value) {
                 const keep = checkRegexs(config["match"], value, true);
                 const remove = checkRegexs(config["!match"], value, false);
-
-                if (config["hookFunction"])
-                    value = Function("args", config["hookFunction"])(value);
+                value = execCode(config["hookFunction"], value);
 
                 if (!remove && keep) {
-                    log(type,
+                    log(hook, type,
                         `${this.nodeName ? `set:${this.nodeName.toLowerCase()}.${attr}` : target}`,
-                        JSON.stringify(value),
+                        value,
                         config
                     );
                 }

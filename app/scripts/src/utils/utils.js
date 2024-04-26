@@ -15,7 +15,7 @@ const sha256 = async (d) => {
     return hashHex;
 }
 
-const log = async (type, sink, sink_data, config) => {
+const log = async (hook, type, sink, sink_data, config) => {
     var stack_trace = trace();
     if (stack_trace[0] === "Error")
         stack_trace.shift();
@@ -40,13 +40,14 @@ const log = async (type, sink, sink_data, config) => {
     }
 
     let data = {
-        ext: "domlogger",
+        ext: "domlogger++",
         date: Date.now(),
         href: location.href,
         type: type,
+        hook: hook,
         frame: top === self ? "top" : "subframe",
         sink: sink,
-        data: sink_data,
+        data: stringify(sink_data),
         trace: stack_trace,
         debug: canary,
         badge: badge,
@@ -60,11 +61,13 @@ const log = async (type, sink, sink_data, config) => {
     }
 }
 
-const getConfig = (key) => {
+const getConfig = (hook, type, key) => {
     var config_global = window.hooksConfig["*"] ? window.hooksConfig["*"] : {};
+    var config_hook   = window.hooksConfig[hook] ? window.hooksConfig[hook] : {};
+    var config_type   = window.hooksConfig[type] ? window.hooksConfig[type] : {};
     var config_target = window.hooksConfig[key] ? window.hooksConfig[key] : {};
 
-    return Object.assign({}, config_global, config_target);
+    return Object.assign({}, config_global, config_target, config_hook, config_type);
 }
 
 const getTargets = (target) => {
@@ -95,29 +98,55 @@ const getOwnPropertyDescriptor = (obj, prop) => {
     return undefined;
 }
 
+const stringify = (args) => {
+    // JSON.stringify(undefined) = undefined -> .match = crash
+    if (typeof args === "undefined") {
+        args = "undefined";
+    } else if (typeof args === "function") {
+        args = args.toString();
+    } else if (!(typeof args === "string")) {
+        args = JSON.stringify(args);
+    }
+
+    return args
+}
+
 const checkRegexs = (regex, args, def) => {
     if (!regex) {
         return def;
     }
 
-    // JSON.stringify(undefined) = undefined -> .match = crash
-    if (typeof args === "undefined")
-        args = "undefined";
-    if (typeof args === "function")
-        args = args.toString();    
-
+    args = stringify(args);
     for (let r of regex) {
+        // Allow the use of variable like location.pathname within the regex value
+        if (r.split(":")[0] === "exec")
+            r = execCode(r, args);
+
         // Check regex
         try { new RegExp(r) } catch {
             console.log(`[DOMLogger++] ${r} (regex) is invalid!`);
             continue
         };
         
-        if (JSON.stringify(args).match(r)) {
+        if (args.match(r)) {
             return true;
         }
     }
     return false;
+}
+
+const execCode = (code, args="") => {
+    if (!code)
+        return args;
+
+    var output = args;
+    try {
+        output = Function("args", code)(args);
+    } catch {
+        console.log(`[DOMLogger++] ${stringify(code)} is an invalid code to evaluate!`);
+    }
+
+    return output;
 }
 
 module.exports = {
@@ -125,5 +154,7 @@ module.exports = {
     getConfig,
     getTargets,
     getOwnPropertyDescriptor,
-    checkRegexs
+    stringify,
+    checkRegexs,
+    execCode
 }

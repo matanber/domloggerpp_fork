@@ -1,7 +1,7 @@
-const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs } = require("./utils");
+const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs, execCode } = require("./utils");
 
-const proxyFunction = (type, target) => {
-    const config = getConfig(target);
+const proxyFunction = (hook, type, target) => {
+    const config = getConfig(hook, type, target);
     var [ parentObject, func ] = getTargets(target.split("."));
 
     if (!parentObject || !(func in parentObject)) {
@@ -25,12 +25,10 @@ const proxyFunction = (type, target) => {
         apply: function(t, thisArg, args) {
             const keep = checkRegexs(config["match"], args, true);
             const remove = checkRegexs(config["!match"], args, false);
-
-            if (config["hookFunction"])
-                args = Function("args", config["hookFunction"])(args);
+            args = execCode(config["hookFunction"], args);
 
             if (!remove && keep) {
-                log(type, target, JSON.stringify(args), config);
+                log(hook, type, target, args, config);
             }
 
             return Reflect.apply(original, thisArg, args);

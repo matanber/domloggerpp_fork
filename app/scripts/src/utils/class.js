@@ -1,7 +1,7 @@
-const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs } = require("./utils");
+const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs, execCode } = require("./utils");
 
-const proxyClass = (type, target) => {
-    const config = getConfig(target);
+const proxyClass = (hook, type, target) => {
+    const config = getConfig(hook, type, target);
     var [ parentObject, cls ] = getTargets(target.split("."));
 
     if (!parentObject || !(cls in parentObject)) {
@@ -24,12 +24,10 @@ const proxyClass = (type, target) => {
         construct: function(t, args) {
             const keep = checkRegexs(config["match"], args, true);
             const remove = checkRegexs(config["!match"], args, false);
-
-            if (config["hookFunction"])
-                args = Function("args", config["hookFunction"])(args);
+            args = execCode(config["hookFunction"], args);
 
             if (!remove && keep)
-                log(type, target, JSON.stringify(args), config);
+                log(hook, type, target, args, config);
 
             return new t(...args);
         }

@@ -1,20 +1,18 @@
 const attributeHook = require("./attribute");
-const { log, getConfig, checkRegexs } = require("./utils");
+const { log, getConfig, stringify, checkRegexs, execCode } = require("./utils");
 
-const proxyClass = (type, target) => {
+const proxyClass = (hook, type, target) => {
     // Format: addEventListener("paste", (event) => {});
     const original = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function (event_type, listener, options) {
         if (target.includes(event_type)) {
-            const config = getConfig(event_type);
-            const keep = checkRegexs(config["match"], `${listener}${options ? `;options=${JSON.stringify(options)}` : ""}`, true);
-            const remove = checkRegexs(config["!match"], `${listener}${options ? `;options=${JSON.stringify(options)}` : ""}`, false);
-
-            if (config["hookFunction"])
-                args = Function("args", config["hookFunction"])(listener);
+            const config = getConfig(hook, type, event_type);
+            const keep = checkRegexs(config["match"], `${listener}${options ? `;options=${stringify(options)}` : ""}`, true);
+            const remove = checkRegexs(config["!match"], `${listener}${options ? `;options=${stringify(options)}` : ""}`, false);
+            args = execCode(config["hookFunction"], listener);
 
             if (!remove && keep)
-                log(type, `on${event_type}`, `${listener}${options ? `;options=${JSON.stringify(options)}` : ""}`, config);
+                log(hook, type, `on${event_type}`, `${listener}${options ? `;options=${stringify(options)}` : ""}`, config);
         }
         return original.call(this, event_type, listener, options);
     };
@@ -25,7 +23,7 @@ const proxyClass = (type, target) => {
             console.log(`[DOMLogger++] on${t} (event) does not exist!`);
             continue;
         }
-        attributeHook(type, `set:on${t}`);
+        attributeHook(hook, type, `set:on${t}`);
     }
 }
 

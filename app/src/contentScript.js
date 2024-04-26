@@ -2,7 +2,7 @@
 const extensionAPI = typeof browser !== "undefined" ? browser : chrome;
 
 const handleMessage = (event) => {
-    if (event.data.ext == "domlogger") {
+    if (event.data.ext == "domlogger++") {
         extensionAPI.runtime.sendMessage({"data": event.data});
     }
 }
@@ -36,7 +36,7 @@ const main = async () => {
         }
 
         let script = document.createElement("script");
-        script.src = extensionAPI.runtime.getURL(`src/bundle.js?hookSettings=${encodeURIComponent(hookSettings)}&debugCanary=${encodeURIComponent(debugCanary)}`);
+        script.src = extensionAPI.runtime.getURL(`src/bundle.js?hookSettings=${encodeURIComponent(btoa(hookSettings))}&debugCanary=${encodeURIComponent(debugCanary)}`);
 
         (document.head || document.documentElement).appendChild(script);
         script.onload = () => {

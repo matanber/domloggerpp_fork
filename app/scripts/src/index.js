@@ -4,13 +4,14 @@ const hooks = {
     "class": require("./utils/class"),
     "attribute": require("./utils/attribute"),
     "event": require("./utils/event"),
+    "checkContent": require("./utils/checkContent"),
     "custom": require("./utils/custom")
 }
 
 // Log setup
 const scriptURL = new URL(document.currentScript.src);
 const params = new URLSearchParams(scriptURL.search);
-const hookSettings = JSON.parse(params.get("hookSettings"));
+const hookSettings = JSON.parse(atob(params.get("hookSettings")));
 
 window.hooksTargets = hookSettings.hooks;
 window.hooksConfig  = hookSettings.config;
@@ -19,7 +20,7 @@ window.domlogger_debug_canary = params.get("debugCanary");
 for (const [type, conf] of Object.entries(window.hooksTargets)) {
     for (const [hook, target] of Object.entries(conf)) {
         if (hook === "event") {
-            hooks[hook](type, target);
+            hooks[hook](hook, type, target);
             continue;
         }
 
@@ -29,7 +30,7 @@ for (const [type, conf] of Object.entries(window.hooksTargets)) {
                 window.originalPostMessage = window.postMessage;
             }
 
-            hooks[hook](type, t);
+            hooks[hook](hook, type, t);
         }
     }
 }
