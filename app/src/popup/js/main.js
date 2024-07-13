@@ -9,7 +9,8 @@ import {
     // Misc
     handleSettingsNavigation,
     // Buttons
-    handleRemoveAllDomain
+    handleRemoveAllDomain,
+    handleAddCurrentDomain
 } from "./handlers.js";
 
 import {
@@ -19,14 +20,13 @@ import {
 
 
 const initColors = () => {
+    window.colorsData = {
+        textColor: "#C6C6CA",
+        backgroundColor: "#292A2D"
+    }
     extensionAPI.storage.local.get("colorsData", (data) => {
         if (data.colorsData) {
             window.colorsData = data.colorsData;
-        } else {
-            window.colorsData = {
-                textColor: "#C6C6CA",
-                backgroundColor: "#292A2D"
-            }
         }
         var root = document.documentElement;
         root.style.setProperty("--text-color", window.colorsData["textColor"]);
@@ -43,23 +43,21 @@ const main = async () => {
     extensionAPI.runtime.sendMessage({ action: "clearBadge" });
 
     // init
+    window.allowedDomains = [];
     extensionAPI.storage.local.get("allowedDomains", (data) => {
         if (data.allowedDomains) {
             window.allowedDomains = data.allowedDomains;
-        } else {
-            window.allowedDomains = [];
         }
         updateUIDomains(window.allowedDomains);
     });
 
+    window.hooksData = {
+        selectedHook: 0,
+        hooksSettings: []
+    }
     extensionAPI.storage.local.get("hooksData", (data) => {
         if (data.hooksData) {
             window.hooksData = data.hooksData;
-        } else {
-            window.hooksData = {
-                selectedHook: 0,
-                hooksSettings: []
-            }
         }
         window.selectedHook =  window.hooksData.selectedHook;
         updateUIHooks(window.selectedHook, window.hooksData.hooksSettings);
@@ -72,6 +70,7 @@ const main = async () => {
     // Buttons
     document.getElementById("remove").addEventListener("click", handleRemoveAllDomain);
     document.getElementById("settings").addEventListener("click", handleSettingsNavigation);
+    document.getElementById("addCurrentDomain").addEventListener("click", handleAddCurrentDomain);
 }
 
 window.addEventListener("DOMContentLoaded", main);

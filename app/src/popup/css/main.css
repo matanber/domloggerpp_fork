@@ -45,15 +45,27 @@ hr {
     border-top: 1px solid var(--text-color);
 }
 
-input, select {
+input[type="text"], select {
     border: var(--border);
     border-radius: var(--border-radius);
     font-family: var(--font-familly);
-    font-size: 15px;
+    font-size: var(--font-size);
     background-color: var(--background-color);
     color: var(--text-color);
     padding: 7px;
     width: 225px;
+}
+
+.add-current-button {
+    border: var(--border);
+    border-radius: var(--border-radius);
+    font-family: var(--font-familly);
+    font-size: var(--font-size);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    padding: 7px;
+    width: 240px;
+    cursor: pointer;
 }
 
 a {

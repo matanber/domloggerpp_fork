@@ -20,9 +20,8 @@ MessagesHandler = new class {
     }
 
     async getDupKey(data) {
-        var href = new URL(data.href);
         // Need to see all sink(x), sink(y)... In order to not miss something important
-        var dupKey = await sha256(`${href.origin + href.pathname}_${data.data}_${data.debug}`)
+        var dupKey = await sha256(`${data.debug}||${data.data}`)
         return dupKey;
     }
 
@@ -137,12 +136,14 @@ const handleAction = (msg, sender) => {
             break;
         case "removeRow":
             delete MessagesHandler.storage[msg.data];
+            MessagesHandler.broadcast(msg);
             break;
         case "openSettings":
             extensionAPI.runtime.openOptionsPage();
             break;
         case "clearStorage":
             MessagesHandler.storage = {};
+            MessagesHandler.broadcast(msg);
             break;
         case "webhookURL":
             MessagesHandler.webhookURL = msg.data;
@@ -150,9 +151,8 @@ const handleAction = (msg, sender) => {
         case "devtoolsPanel":
             MessagesHandler.devtoolsPanel = msg.data;
             break;
+        case "updateTableConfig":
         case "updateConfig":
-            MessagesHandler.broadcast(msg);
-            break;
         case "updateColors":
             MessagesHandler.broadcast(msg);
             break;
@@ -165,6 +165,18 @@ const handleMessage = (msg, sender) => {
         return;
     }
     MessagesHandler.postMessage(msg, sender);
+}
+
+// For pwnfox support
+const handleTabChange = async (activeInfo) => {
+    let tabId = activeInfo.tabId;
+    const { cookieStoreId } = await browser.tabs.get(tabId);
+    if (cookieStoreId === "firefox-default") {
+        extensionAPI.storage.local.set({ activeTab: "firefox-default" })
+    } else {
+        const identity = await browser.contextualIdentities.get(cookieStoreId)
+        extensionAPI.storage.local.set({ activeTab: identity.name })
+    }
 }
 
 const init = () => {
@@ -194,6 +206,19 @@ const init = () => {
             }});
         }
     });
+    // Set default tableConfig settings
+    extensionAPI.storage.local.get("tableConfig", (data) => {
+        if (data.tableConfig === undefined) {
+            extensionAPI.storage.local.set({ tableConfig: {
+                colIds: [ "dupKey", "type", "alert", "hook", "date", "href", "frame", "sink", "data", "trace", "debug" ],
+                colVisibility: {
+                    "dupKey": false, "type": false, "alert": true, "hook": false, "date": true, "href": true, "frame": true, "sink": true, "data": true, "trace": true, "debug": true
+                },
+                colOrder: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+            }});
+        }
+    });
+
     // Set webhookURL attribute after browser restart
     extensionAPI.storage.local.get("webhookURL", (data) => {
         if (data.webhookURL) {
@@ -218,6 +243,10 @@ const main = async () => {
     // extensionAPI.storage.local.get(null, data => console.log(data));
     extensionAPI.runtime.onConnect.addListener(port => MessagesHandler.connect(port))
     extensionAPI.runtime.onMessage.addListener(handleMessage);
+    // Adding pwnfox support only on firefox
+    if (typeof browser !== "undefined") {
+        extensionAPI.tabs.onActivated.addListener(handleTabChange);
+    }
 }
 
 main();

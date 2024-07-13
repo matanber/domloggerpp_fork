@@ -1,0 +1,148 @@
+{
+  "hooks": {
+    "DOM": {
+      "attribute": [
+        "set:Element.prototype.innerHTML",
+        "set:Element.prototype.outerHTML",
+        "set:HTMLAnchorElement.prototype.href",
+        "set:HTMLButtonElement.prototype.formAction",
+        "set:HTMLFormElement.prototype.action",
+        "set:HTMLIFrameElement.prototype.src",
+        "set:HTMLIFrameElement.prototype.srcdoc",
+        "set:HTMLInputElement.prototype.formAction",
+        "set:HTMLScriptElement.prototype.innerHTML",
+        "set:HTMLScriptElement.prototype.innerText",
+        "set:HTMLScriptElement.prototype.text",
+        "set:HTMLScriptElement.prototype.textContent",
+        "set:HTMLScriptElement.prototype.src"
+      ],
+      "function": [
+        "Element.prototype.insertAdjacentHTML",
+        "Element.prototype.setAttribute",
+        "HTMLScriptElement.prototype.append",
+        "HTMLScriptElement.prototype.appendChild"
+      ]
+    },
+    "EVAL": {
+      "function": [
+        "eval",
+        "Function",
+        "setInterval",
+        "setTimeout"
+      ]
+    },
+    "JQUERY": {
+      "custom": [
+        "function:$",
+        "function:jQuery",
+        "function:jQuery.globalEval",
+        "function:jQuery.parseHTML",
+        "function:jQuery.prototype.add",
+        "function:jQuery.prototype.after",
+        "function:jQuery.prototype.attr",
+        "function:jQuery.prototype.append",
+        "function:jQuery.prototype.appendTo",
+        "function:jQuery.prototype.before",
+        "function:jQuery.prototype.constructor",
+        "function:jQuery.prototype.has",
+        "function:jQuery.prototype.html",
+        "function:jQuery.prototype.index",
+        "function:jQuery.prototype.init",
+        "function:jQuery.prototype.insertAfter",
+        "function:jQuery.prototype.insertBefore",
+        "function:jQuery.prototype.prepend",
+        "function:jQuery.prototype.prependTo",
+        "function:jQuery.prototype.prop",
+        "function:jQuery.prototype.replaceAll",
+        "function:jQuery.prototype.replaceWith",
+        "function:jQuery.prototype.wrap",
+        "function:jQuery.prototype.wrapAll",
+        "function:jQuery.prototype.wrapInner"
+      ]
+    },
+    "NAVIGATION": {
+      "function": [
+        "history.pushState",
+        "history.replaceState",
+        "navigation.navigate",
+        "window.open"
+      ]
+    },
+    "REQUESTS": {
+      "function": [
+        "fetch",
+        "XMLHttpRequest.prototype.open",
+        "XMLHttpRequest.prototype.setRequestHeader",
+        "XMLHttpRequest.prototype.send"
+      ]
+    },
+    "PSTMSG": {
+      "function": [
+        "window.postMessage"
+      ],
+      "event": [
+        "message"
+      ]
+    },
+    "MISC": {
+      "function": [
+        "document.implementation.createHTMLDocument",
+        "execScript",
+        "msSetImmediate",
+        "navigator.serviceWorker.register",
+        "Range.prototype.createContextualFragment",
+        "setImmediate"
+      ],
+      "attribute": [
+        "document.cookie",
+        "document.domain",
+        "window.name"
+      ],
+      "class": [
+        "WebSocket",
+        "URL"
+      ]
+    }
+  },
+  "config": {
+    "DOM": {
+      "match": [
+        "canary-name",
+        "canary-email@domain.com",
+        "\\+33611223344"
+      ]
+    },
+    "EVAL": {
+      "match": [
+        "canary-name",
+        "canary-email@domain.com",
+        "\\+33611223344"
+      ]
+    },
+    "JQUERY": {
+      "match": [
+        "canary-name",
+        "canary-email@domain.com",
+        "\\+33611223344"
+      ]
+    },
+    "*": {
+      "!match": [
+        "metamask",
+        "wappalyzer",
+        "google_tag_manager",
+        "bitwarden",
+        "messenger_awaiter",
+        "grecaptcha"
+      ],
+      "alert": {
+        "match": [
+          "canary-name",
+          "canary-email@domain.com",
+          "\\+33611223344"
+        ],
+        "notification": true
+      }
+    }
+  }
+}

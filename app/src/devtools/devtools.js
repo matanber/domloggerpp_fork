@@ -26,30 +26,44 @@ const promisifyChromeAPI = (method) => {
     let _window = null;
 
     port.onMessage.addListener((data) => {
-        // Handle update config only if DOM loaded
-        if (data.action === "updateConfig") {
-            if (_window)
-                _window.initButtons();
-            return;
-        }
-        if (data.action === "updateColors") {
-            if (_window)
-                _window.initColors();
-            return;
-        }
-
-        // Handle msg historic
+        // Handle msg history
         if (data.init) {
             msgHistory = Object.assign(msgHistory, data.init);
             return;
         }
 
-        // Handle each message if DOM loaded
+        // Handle actions only if DOM loaded
         if (_window) {
-            _window.handleMessage(data);
-        } else {
-            msgHistory[data.key] = data;
+            switch (data.action) {
+                case "clearStorage":
+                    _window.table.clear().draw();
+                    break;
+                case "removeRow":
+                    var key = data.data;
+                    _window.table.rows((idx, data, node) => {
+                        return data.dupKey === key;
+                    }).remove().draw();
+                    break;
+                case "updateConfig":
+                    _window.initButtons();
+                    break;
+                case "updateColors":
+                    _window.initColors();
+                    break;
+                case "updateTableConfig":
+                    _window.tableConfig = data.tableConfig;
+                    _window.updateUITable();
+                    break;
+                default:
+                    // Handle each message if DOM loaded
+                    if (_window) {
+                        _window.handleMessage(data);
+                    } else {
+                        msgHistory[data.key] = data;
+                    }
+            }
         }
+        return;
     });
 
     panel.onShown.addListener(function (panelWindow) {

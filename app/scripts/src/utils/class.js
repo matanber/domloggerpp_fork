@@ -2,29 +2,29 @@ const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs, execC
 
 const proxyClass = (hook, type, target) => {
     const config = getConfig(hook, type, target);
-    var [ parentObject, cls ] = getTargets(target.split("."));
+    var [ parentObject, cls ] = getTargets(domlogger.func["String.prototype.split"].call(target,"."));
 
     if (!parentObject || !(cls in parentObject)) {
-        console.log(`[DOMLogger++] ${target} (class) does not exist!`);
+        domlogger.func["console.log"](`[DOMLogger++] ${target} (class) does not exist!`);
         return;
     }
 
     if (!(typeof parentObject[cls] === "function")) {
-        console.log(`[DOMLogger++] ${target} is not a class!`);
+        domlogger.func["console.log"](`[DOMLogger++] ${target} is not a class!`);
         return;
     }
 
     // Non-configurable property can't be proxy
     if (!getOwnPropertyDescriptor(parentObject, cls).configurable) {
-        console.log(`[DOMLogger++] ${target} is not configurable, can't hook it!`);
+        domlogger.func["console.log"](`[DOMLogger++] ${target} is not configurable, can't hook it!`);
         return;
     }
 
-    parentObject[cls] = new Proxy(parentObject[cls], {
+    parentObject[cls] = new domlogger.func["Proxy"](parentObject[cls], {
         construct: function(t, args) {
-            const keep = checkRegexs(config["match"], args, true);
-            const remove = checkRegexs(config["!match"], args, false);
-            args = execCode(config["hookFunction"], args);
+            const keep = checkRegexs(target, config["match"], args, true);
+            const remove = checkRegexs(target, config["!match"], args, false);
+            args = execCode(target, config["hookFunction"], args);
 
             if (!remove && keep)
                 log(hook, type, target, args, config);

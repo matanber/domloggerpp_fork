@@ -90,6 +90,7 @@ https://github.com/kevin-mizu/domloggerpp/assets/48991194/0827eef3-6c16-42fc-b84
 - `Domains`: Easily manage allowed domains, similar to the functionality in the popup menu.
 - `Webhook`: Specify a remote host that will receive logs based on your configuration settings.
 - `Devtools`: If you're using a backend server and prefer not to display information in your devtool panel, this section lets you disable that feature.
+- `Table`: Personalize the devtools tables to align with your preferences.
 - `Customize`: Personalize the application's theme to align with your preferences.
 
 <br>
@@ -110,12 +111,12 @@ https://github.com/kevin-mizu/domloggerpp/assets/48991194/0827eef3-6c16-42fc-b84
     "config": {
         "*": {},
         "sink_1": {
-            "match": [ "regex_1", "regex_2" ],
-            "!match": [ "regex_1", "regex_2" ],
+            "match": [ "regex_1", "regex_2", "exec:return 'regex_3'" ],
+            "!match": [ "regex_1", "regex_2", "exec:return 'regex_3'" ],
             "hookFunction": "return args",
             "alert": {
-                "match": [ "regex_1", "regex_2" ],
-                "!match": [ "regex_1", "regex_2" ],
+                "match": [ "regex_1", "regex_2", "exec:return 'regex_3'" ],
+                "!match": [ "regex_1", "regex_2", "exec:return 'regex_3'" ],
                 "notification": true
             }
         }
@@ -138,7 +139,7 @@ https://github.com/kevin-mizu/domloggerpp/assets/48991194/0827eef3-6c16-42fc-b84
     + `class` & `function`: Use the target name directly, such as `URLSearchParams`.
     + `event`: Only use the event name. For instance, for the onmessage event, simply use `message`.
     + `attribute`: Prefix with `set:` or/and `get:` as appropriate. An example would be `set:Element.prototype.innerHTML`.
-    + `custom`: Format it as `type:sink_X:interval`. For example,  `attribute:set:window.mizupolluted:50`. The interval indicates the delay between each check.
+    + `custom`: Format it as `type:sink_X`. For example, `attribute:set:jQuery.prototype.add`.
 
 ### Config
 
@@ -149,6 +150,8 @@ https://github.com/kevin-mizu/domloggerpp/assets/48991194/0827eef3-6c16-42fc-b84
 - `alert`: Triggers an alert badge on the extension icon based on specific conditions.
     + `match` & `!match`: Additional regular expressions that the sink parameters must respect to or avoid, respectively, in order to trigger the alert.
     + `notification`: If set to `true`, a notification popup will appear when all conditions are satisfied.
+
+Since version `1.0.4`, it is now possible to use the `exec:` regex directive, which allows you to generate a regex from JavaScript execution. For instance: `exec:return document.location.pathname`.
 
 *For more detailed examples and insights, please refer to the [examples](./examples/) folder.*
 
@@ -167,11 +170,15 @@ Not yet developed.
 - Find a way to log Content Security Policy (CSP) errors.
 - Find a way to hook the document.location property.
 - Simplify headless browser compatibility.
+- Fix a DOS with Reflect.apply, crypto, this.nodeName.toLowerCase... hooking.
+- Fix the devtools goto button when the sink is reached within an iframe (it should redirect on the top frame).
 
 <br>
 
 ## 🤝 Contributors
 
-[Me](https://twitter.com/kevin_mizu), you?
+Many people helped and help DOMLogger++ become what it is and need to be acknowledged here!
+
+[@aituglo](https://x.com/aituglo), [@xnl_h4ck3r](https://x.com/xnl_h4ck3r), [AetherBlack](https://github.com/AetherBlack), [@FeelProud_sec](https://twitter.com/FeelProud_sec), [aristosMiliaressis](https://github.com/aristosMiliaressis), [@me0wday](https://x.com/me0wday), [@k1ng_pr4wn](https://x.com/k1ng_pr4wn)
 
 *Special thanks to [@BitK\_](https://twitter.com/BitK_) for the well-structured code in [Pwnfox](https://github.com/yeswehack/PwnFox), it helped me a lot to understand browsers extensions ❤️*

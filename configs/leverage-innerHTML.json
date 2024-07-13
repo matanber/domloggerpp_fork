@@ -1,0 +1,62 @@
+{
+  "hooks": {
+    "REQUIRED": {
+      "attribute": [
+        "set:Element.prototype.innerHTML"
+      ]
+    },
+    "TARGET": {
+      "function": [
+        "document.querySelector",
+        "document.querySelectorAll",
+        "document.getElementById",
+        "document.getElementsByName",
+        "document.getElementsByTagName",
+        "document.getElementsByTagNameNS",
+        "document.getElementsByClassName"
+      ],
+      "attribute": [
+        "get:HTMLElement.prototype.dataset"
+      ]
+    },
+    "EVENT": {
+      "event": [
+        "hashchange",
+        "click",
+        "focus"
+      ]
+    }
+  },
+  "config": {
+    "*": {
+      "!match": [
+        "metamask",
+        "wappalyzer",
+        "google_tag_manager",
+        "bitwarden",
+        "messenger_awaiter",
+        "grecaptcha"
+      ]
+    },
+    "event": {
+      "alert": {
+        "match": [
+          "eval",
+          "innerHTML",
+          "outerHTML"
+        ],
+        "notification": true
+      }
+    },
+    "REQUIRED": {
+      "match": [
+        "canary-name"
+      ]
+    },
+    "TARGET": {
+      "requiredHooks": [
+        "REQUIRED"
+      ]
+    }
+  }
+}

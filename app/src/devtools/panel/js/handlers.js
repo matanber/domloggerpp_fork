@@ -7,6 +7,7 @@ import {
     getCol,
     downloadData,
     colorFilter,
+    cleanData,
     colorData,
     unsanitizeHtml
 } from "./utils.js"
@@ -23,8 +24,9 @@ function handleShowData() {
     $("#modal-content").html(`
     <span class="close">&times;</span>
     <h3 class="mgb-30">Data passed into the sink</h3>
-    <p>${filterData ? colorData(data, filterData) : data}</p>
-    `);
+    <div style="text-align:left">
+        <p>${filterData ? colorData(cleanData(data), filterData) : cleanData(data)}</p>
+    </div>`);
     $("#modal").css("display", "block");
 }
 
@@ -71,16 +73,16 @@ function handleFilterButton() {
     var filterData = $(this).data("filter");
 
     if (filterData == "All") {
-        window.table.column(window.colIds.indexOf("type")).search("");
+        window.table.column(window.tableConfig.colIds.indexOf("type")).search("");
     } else {
-        window.table.column(window.colIds.indexOf("type")).search(filterData);
+        window.table.column(window.tableConfig.colIds.indexOf("type")).search(filterData);
     }
     window.table.draw();
 }
 
 function handleFilterData() {
     const filterData = $(this).val();
-    const colId = window.colIds.indexOf("data");
+    const colId = window.tableConfig.colIds.indexOf("data");
 
     window.table.column(colId).search(filterData, false, false);
     window.table.draw();
@@ -91,16 +93,16 @@ function handleAdvancedSearch(event) {
     const filters = this.filters.value.split(";");
 
     window.table.columns().every( function() {
-        if (window.colIds[this.index()] !== "data")
+        if (window.tableConfig.colIds[this.index()] !== "data")
             this.search('');
     });
     for (const f of filters) {
         var [ key, value ] = f.split("=");
-        if (value && window.colIds.indexOf(key) !== -1 && key !== "data")
-            window.table.column(window.colIds.indexOf(key)).search(value);
+        if (value && window.tableConfig.colIds.indexOf(key) !== -1 && key !== "data")
+            window.table.column(window.tableConfig.colIds.indexOf(key)).search(value);
     }
 
-    table.draw();
+    window.table.window.draw();
 }
 
 function handleFilterSpan() {
@@ -133,9 +135,9 @@ function handleRedirection() {
 
 // Misc events
 function handleRemoveRow() {
-    table.row($(this).parents("tr")).remove();
+    window.table.window.row($(this).parents("tr")).remove();
     extensionAPI.runtime.sendMessage({ action: "removeRow", data: $(this).attr("data-dupKey") });
-    table.draw();
+    window.table.window.draw();
 }
 
 // Buttons events
@@ -164,7 +166,7 @@ function handleImport(e) {
 }
 
 function handleClear() {
-    table.clear().draw();
+    window.table.clear().draw();
     extensionAPI.runtime.sendMessage({ action: "clearStorage" });
 }
 

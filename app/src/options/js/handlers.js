@@ -5,7 +5,8 @@ import {
     save,
     remove,
     updateUIDomains,
-    updateUIDevtools,
+    updateUIButtons,
+    updateUITable,
     updateUIEditor,
     addHook,
     renameHook,
@@ -31,6 +32,21 @@ function handleSidebarClick() {
             elem.querySelector("svg").classList.add("text-color");
         }
     })
+}
+
+// PwnFox
+function handlePwnfoxSupport() {
+    extensionAPI.storage.local.set({ pwnfoxSupport: window.pwnfoxSupport });
+    var value = this.getAttribute("data-data");
+    console.log(value, window.pwnfoxSupport)
+    if (value === "yes" && !window.pwnfoxSupport) {
+        window.pwnfoxSupport = true;
+        extensionAPI.storage.local.set({ pwnfoxSupport: window.pwnfoxSupport });
+    } else if (value === "no" && window.pwnfoxSupport) {
+        window.pwnfoxSupport = false;
+        extensionAPI.storage.local.set({ pwnfoxSupport: window.pwnfoxSupport });
+    }
+    updateUIButtons("pwnfox", window.pwnfoxSupport);
 }
 
 // Domains
@@ -76,7 +92,45 @@ function handleDevtool(e) {
         extensionAPI.storage.local.set({ devtoolsPanel: window.devtoolsPanel });
         extensionAPI.runtime.sendMessage({ action: "devtoolsPanel", "data": window.devtoolsPanel });
     }
-    updateUIDevtools(window.devtoolsPanel);
+    updateUIButtons("devtools", window.devtoolsPanel);
+}
+
+// Table
+function handleTableFormat(e) {
+    updateUITable();
+}
+
+function handleVisibility(e) {
+    window.tableConfig.colVisibility[this.innerText] = window.tableConfig.colVisibility[this.innerText] ? false : true;
+    updateUITable();
+}
+
+function handleTableReset(e) {
+    extensionAPI.storage.local.get("tableConfig", (data) => {
+        if (data.tableConfig) {
+            window.tableConfig = data.tableConfig;
+        }
+        updateUITable();
+    });
+}
+
+function handleTableDefault(e) {
+    window.tableConfig = {
+        colIds: [ "dupKey", "type", "alert", "hook", "date", "href", "frame", "sink", "data", "trace", "debug" ],
+        colVisibility: {
+            "dupKey": false, "type": false, "alert": true, "hook": false, "date": true, "href": true, "frame": true, "sink": true, "data": true, "trace": true, "debug": true
+        },
+        colOrder: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+    }
+    updateUITable();
+}
+
+function handleTableSave(e) {
+    window.tableConfig.colOrder = window.table.colReorder.order();
+    extensionAPI.storage.local.set({ tableConfig: window.tableConfig });
+    extensionAPI.runtime.sendMessage({ action: "updateTableConfig", tableConfig: window.tableConfig });
+    errorMessage("Table config saved!", window.errorTable);
+    updateUITable();
 }
 
 // Misc events
@@ -217,12 +271,20 @@ function handleColorConfirm() {
 export {
     // Sidebar
     handleSidebarClick,
+    // PwnFox
+    handlePwnfoxSupport,
     // Domains
     handleAddDomain,
     // Webhook
     handleChangeWebhookURL,
     // Devtools
     handleDevtool,
+    // Table
+    handleTableFormat,
+    handleVisibility,
+    handleTableReset,
+    handleTableDefault,
+    handleTableSave,
     // Editor
     handleSelect,
     handleAdd,

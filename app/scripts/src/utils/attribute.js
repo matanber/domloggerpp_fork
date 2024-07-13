@@ -2,19 +2,24 @@ const { log, getConfig, getTargets, getOwnPropertyDescriptor, checkRegexs, execC
 
 const proxyAttribute = (hook, type, target) => {
     const config = getConfig(hook, type, target);
-    const propProxy = target.split(":");
-    target = propProxy.pop();
-    const [ obj, attr ] = getTargets(target.split("."));
+    var propProxy = domlogger.func["String.prototype.split"].call(target, ":");
+    target = domlogger.func["Array.prototype.pop"].call(propProxy);
+    const [ obj, attr ] = getTargets(domlogger.func["String.prototype.split"].call(target, "."));
+
+    // No propProxy empty hook get and set
+    if (propProxy.length === 0) {
+        propProxy = [ "set", "get" ];
+    }
 
     if (!obj || !(attr in obj)) {
-        console.log(`[DOMLogger++] ${target} (attribute) does not exist!`);
+        domlogger.func["console.log"](`[DOMLogger++] ${target} (attribute) does not exist!`);
         return;
     }
 
     try {
         // Some attribute can't be access obj[attr] -> crash (ie: Element.prototype.innerHTML)
         if (typeof obj[attr] === "function") {
-            console.log(`[DOMLogger++] ${target} can't be a function or a class!`);
+            domlogger.func["console.log"](`[DOMLogger++] ${target} can't be a function or a class!`);
             return;
         }
     } catch {}
@@ -23,7 +28,7 @@ const proxyAttribute = (hook, type, target) => {
 
     // Non-configurable property can't be proxy
     if (!original.configurable) {
-        console.log(`[DOMLogger++] ${target} is not configurable, can't hook it!`);
+        domlogger.func["console.log"](`[DOMLogger++] ${target} is not configurable, can't hook it!`);
         return;
     }
 
@@ -33,16 +38,16 @@ const proxyAttribute = (hook, type, target) => {
         try {
             currentValue = obj[attr];
         } catch {
-            // In this case, 
+            // In this case, XXX
             if (!original.set && original.get) {
-                if (propProxy.includes("set")) {
-                    console.log(`[DOMLogger++] Only the getter can be hooked for ${target}, remove set!`);
+                if (domlogger.func["Array.prototype.includes"].call(propProxy, "set")) {
+                    domlogger.func["console.log"](`[DOMLogger++] Only the getter can be hooked for ${target}, remove set!`);
                     return;
                 }
             }
             // Default error response
             else {
-                console.log(`[DOMLogger++] ${target} can't be hook for now!`);
+                domlogger.func["console.log"](`[DOMLogger++] ${target} can't be hook for now!`);
                 return;
             }
         }
@@ -57,26 +62,30 @@ const proxyAttribute = (hook, type, target) => {
                 output = currentValue;
             }
 
-            if (propProxy.includes("get")) {
-                output = execCode(config["hookFunction"], output);
+            if (domlogger.func["Array.prototype.includes"].call(propProxy, "get")) {
+                const keep = checkRegexs(target, config["match"], output, true);
+                const remove = checkRegexs(target, config["!match"], output, false);
+                output = execCode(target, config["hookFunction"], output);
 
-                log(hook, type,
-                    `${this.nodeName ? `get:${this.nodeName.toLowerCase()}.${attr}` : target}`,
-                    output,
-                    config
-                );
+                if (!remove && keep) {
+                    log(hook, type,
+                        this.nodeName ? `get:${this.nodeName.toLowerCase()}.${attr}` : `get:${target}`,
+                        output,
+                        config
+                    );
+                }
             }
             return output;
         },
         set: function(value) {
-            if(propProxy.includes("set") && value) {
-                const keep = checkRegexs(config["match"], value, true);
-                const remove = checkRegexs(config["!match"], value, false);
-                value = execCode(config["hookFunction"], value);
+            if(domlogger.func["Array.prototype.includes"].call(propProxy, "set") && value) {
+                const keep = checkRegexs(target, config["match"], value, true);
+                const remove = checkRegexs(target, config["!match"], value, false);
+                value = execCode(target, config["hookFunction"], value);
 
                 if (!remove && keep) {
                     log(hook, type,
-                        `${this.nodeName ? `set:${this.nodeName.toLowerCase()}.${attr}` : target}`,
+                        this.nodeName ? `set:${this.nodeName.toLowerCase()}.${attr}` : `set:${target}`,
                         value,
                         config
                     );

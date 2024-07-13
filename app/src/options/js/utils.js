@@ -49,18 +49,43 @@ const updateUIWebhook = (webhookURL) => {
     document.getElementById("webhookURL").value = webhookURL;
 }
 
-const updateUIDevtools = (devtoolsPanel) => {
-    if (devtoolsPanel) {
-        document.getElementsByClassName("devtools-button")[0].style["background-color"] = "var(--text-color)"
-        document.getElementsByClassName("devtools-button")[1].style["background-color"] = "var(--background-color)"
-        document.getElementsByClassName("devtools-button")[0].style["color"] = "var(--background-color)"
-        document.getElementsByClassName("devtools-button")[1].style["color"] = "var(--text-color)"
+const updateUIButtons = (target, value) => {
+    if (value) {
+        document.getElementsByClassName(`${target}-button`)[0].style["background-color"] = "var(--text-color)"
+        document.getElementsByClassName(`${target}-button`)[1].style["background-color"] = "var(--background-color)"
+        document.getElementsByClassName(`${target}-button`)[0].style["color"] = "var(--background-color)"
+        document.getElementsByClassName(`${target}-button`)[1].style["color"] = "var(--text-color)"
     } else {
-        document.getElementsByClassName("devtools-button")[0].style["background-color"] = "var(--background-color)"
-        document.getElementsByClassName("devtools-button")[1].style["background-color"] = "var(--text-color)"
-        document.getElementsByClassName("devtools-button")[0].style["color"] = "var(--text-color)"
-        document.getElementsByClassName("devtools-button")[1].style["color"] = "var(--background-color)"
+        document.getElementsByClassName(`${target}-button`)[0].style["background-color"] = "var(--background-color)"
+        document.getElementsByClassName(`${target}-button`)[1].style["background-color"] = "var(--text-color)"
+        document.getElementsByClassName(`${target}-button`)[0].style["color"] = "var(--text-color)"
+        document.getElementsByClassName(`${target}-button`)[1].style["color"] = "var(--background-color)"
     }
+}
+
+const updateUITable = () => {
+    if (!window.table)
+        return;
+
+    // When using window.table.colReorder.order to update order, it uses the current col order as a reference
+    var updateOrder  = [];
+    var currentOrder = window.table.colReorder.order();
+    for (const c of window.tableConfig.colOrder) {
+        updateOrder.push(currentOrder.indexOf(c));
+    }
+    window.table.colReorder.order(updateOrder);
+
+    for (const node of document.querySelectorAll("#colList > span")) {
+        var colName  = node.innerText;
+        var colIndex = window.tableConfig.colOrder.indexOf(window.tableConfig.colIds.indexOf(colName));
+        var colVisibility = window.tableConfig.colVisibility[colName];
+        node.classList.toggle("table-active", colVisibility);
+
+        if (colVisibility !== window.table.column(colIndex).visible()) {
+            window.table.column(colIndex).visible(colVisibility);
+        }
+    }
+    window.table.columns.adjust().draw();
 }
 
 const updateUIEditor = (index) => {
@@ -128,14 +153,14 @@ const remove = (index) => {
 }
 
 // Check config content
-const ROOT_KEYS   = ["hooks", "config"];
-const VALID_HOOKS_TYPES = ["attribute", "class", "function", "event", "checkContent", "custom"];
+const ROOT_KEYS   = ["_description", "hooks", "config"];
+const VALID_HOOKS_TYPES = ["attribute", "class", "function", "event", "custom"];
 const VALID_CUSTOM_HOOKS_TYPES = VALID_HOOKS_TYPES.slice(0, -2); // removing event & custom
-const VALID_CONFIG_KEY = ["match", "!match", "hookFunction", "alert"]
+const VALID_CONFIG_KEY = ["match", "!match", "hookFunction", "alert", "requiredHooks"]
 const VALID_CONFIG_ALERT_KEY = ["match", "!match", "notification"]
 const checkHookConfig = (config) => {
     var isHookingFunction = false;
-    
+
     // Check JSON
     try {
         config = JSON.parse(config);
@@ -146,15 +171,24 @@ const checkHookConfig = (config) => {
 
     // Checking JSON config content
     for (let key in config) {
+        if (key === "_description") {
+            continue;
+        }
+
         if (!ROOT_KEYS.includes(key)) {
-            errorMessage(`${key.toUpperCase()} is an invalid root key, must be one of: ${JSON.stringify(ROOT_KEYS)}`, window.errorConfig);
+            errorMessage(`${key} is an invalid root key, must be one of: ${JSON.stringify(ROOT_KEYS)}`, window.errorConfig);
             return null;
         }
 
         if (typeof config[key] !== "object") {
-            errorMessage(`${key.toUpperCase()} as invalid content, must be an object!`, window.errorConfig);
+            errorMessage(`${key} as invalid content, must be an object!`, window.errorConfig);
             return null;
         }
+    }
+
+    if (config["_description"] !== undefined && typeof config["_description"] !== "string") {
+        errorMessage(`_description as an invalid content, must be a string!`, window.errorConfig);
+        return null;
     }
 
     // Check hooks structure
@@ -193,12 +227,6 @@ const checkHookConfig = (config) => {
                         errorMessage(`hooks["${category}"]["${type}"] > ${JSON.stringify(target)}[0] as an invalid target type, must be one of: ${VALID_CUSTOM_HOOKS_TYPES}`, window.errorConfig);
                         return;
                     }
-
-                    var interval = Number(target.split(":").pop());
-                    if (isNaN(interval)) {
-                        errorMessage(`hooks["${category}"]["${type}"] > ${JSON.stringify(target)}[-1] is invalid, must be a number!`, window.errorConfig);
-                        return null;
-                    }
                 }
             }
         }
@@ -218,7 +246,7 @@ const checkHookConfig = (config) => {
             }
 
             // Keep / Remove
-            if (key === "match" || key === "!match") {
+            if (key === "match" || key === "!match" || key === "requiredHooks") {
                 if (!Array.isArray(config["config"][target][key])) {
                     errorMessage(`config["${target}"]["${key}"] as an invalid content, must be an array!`, window.errorConfig);
                     return null;
@@ -287,7 +315,8 @@ export {
     sanitizeHtml,
     updateUIDomains,
     updateUIWebhook,
-    updateUIDevtools,
+    updateUIButtons,
+    updateUITable,
     updateUIEditor,
     updateUIEditorSelect,
     updateUIColors,

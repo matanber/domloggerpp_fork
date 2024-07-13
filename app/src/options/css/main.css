@@ -237,7 +237,7 @@ textarea {
     align-items: center;
 }
 
-.devtools-button {
+.devtools-button, .pwnfox-button {
     border: var(--border);
     border-radius: var(--border-radius);
     font-family: var(--font-familly);
@@ -250,6 +250,49 @@ textarea {
     margin-right: 20px;
     margin-left: 20px;
     cursor: pointer;
+}
+
+/* ** Table ** */
+#colList {
+    cursor: pointer;
+}
+
+.table-active {
+    font-weight: bold;
+}
+
+.table-button {
+    border: var(--border);
+    border-radius: var(--border-radius);
+    font-family: var(--font-familly);
+    font-size: var(--font-size);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    padding: 10px;
+    padding-left: 50px;
+    padding-right: 50px;
+    margin-right: 20px;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+#tablePreview {
+    width: 800px;
+    max-height: 400px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+#dt-search-0 {
+    width: 350px;
+    font-family: var(--font-familly);
+    font-size: var(--font-size);
+}
+
+#dt-length-0 {
+    width: 75px;
+    font-family: var(--font-familly);
+    font-size: var(--font-size);
 }
 
 /* ** Modal ** */

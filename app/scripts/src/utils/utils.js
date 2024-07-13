@@ -1,36 +1,48 @@
 const trace = () => {
-    let error = new Error();
+    let error = new domlogger.func["Error"]();
     let stack = error.stack;
-    stack = stack.split("\n");
-    return stack.filter(line => !line.includes("/src/bundle.js"));
+    stack = domlogger.func["String.prototype.split"].call(stack, "\n");
+    return domlogger.func["Array.prototype.filter"].call(stack, (line => !(domlogger.func["String.prototype.includes"].call(line, "/src/bundle.js"))));
 }
 
 const sha256 = async (d) => {
-    const encoder = new TextEncoder();
+    const encoder = new domlogger.func["TextEncoder"]();
     const data = encoder.encode(d);
     const hash = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hash));
+    const hashArray = domlogger.func["Array.from"](new domlogger.func["Uint8Array"](hash));
 
-    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+    const hashHex = domlogger.func["Array.prototype.join"].call(domlogger.func["Array.prototype.map"].call(hashArray, (byte => byte.toString(16).padStart(2, "0"))), "");
     return hashHex;
 }
 
-const log = async (hook, type, sink, sink_data, config) => {
-    var stack_trace = trace();
-    if (stack_trace[0] === "Error")
-        stack_trace.shift();
-    var canary = stack_trace[0];
-    canary = await sha256(canary);
+const computeCanary = async (sink, stackTrace) => {
+    var execScript = "";
+    try {
+        cleanUrl   = stackTrace[0].split("@")[1].split(":");
+        execLine   = cleanUrl.splice(cleanUrl.length-2).join(":");
+        cleanUrl   = cleanUrl.splice(0,2).join(":");
+        execScript = `${new URL(cleanUrl).origin}:${execLine}`;
+    } catch {
+        execScript = stackTrace[0];
+    }
+    return await sha256(`${execScript}||${sink}`);
+}
 
-    if (window?.domlogger_debug_canary === canary)
+const log = async (hook, type, sink, sinkData, config) => {
+    var stackTrace = trace();
+    if (stackTrace[0] === "Error")
+        domlogger.func["Array.prototype.shift"].call(stackTrace);
+
+    const canary = await computeCanary(sink, stackTrace);
+    if (domlogger["debugCanary"] === canary)
         debugger;
 
     // Alert system
     var badge = false;
     var notification = false;
     if (config.alert) {
-        const keep = checkRegexs(config.alert["match"], sink_data, true);
-        const remove = checkRegexs(config.alert["!match"], sink_data, false);
+        const keep = checkRegexs(sink, config.alert["match"], sinkData, true);
+        const remove = checkRegexs(sink, config.alert["!match"], sinkData, false);
 
         if (!remove && keep) {
             badge = true;
@@ -41,42 +53,44 @@ const log = async (hook, type, sink, sink_data, config) => {
 
     let data = {
         ext: "domlogger++",
-        date: Date.now(),
+        date: domlogger.func["Date.now"](),
         href: location.href,
         type: type,
         hook: hook,
         frame: top === self ? "top" : "subframe",
         sink: sink,
-        data: stringify(sink_data),
-        trace: stack_trace,
+        data: stringify(sinkData),
+        trace: stackTrace,
         debug: canary,
         badge: badge,
         notification: notification,
     };
 
-    if (window.originalPostMessage) {
-        window.originalPostMessage(data, "*");
-    } else {
-        window.postMessage(data, "*");
+    if (!domlogger.func["Array.prototype.includes"].call(domlogger["hookTypeHistory"], type)) {
+        domlogger.func["Array.prototype.push"].call(domlogger["hookTypeHistory"], type);
+    }
+
+    if (checkRequired(config)) {
+        domlogger.func["postMessage"](data, "*");
     }
 }
 
 const getConfig = (hook, type, key) => {
-    var config_global = window.hooksConfig["*"] ? window.hooksConfig["*"] : {};
-    var config_hook   = window.hooksConfig[hook] ? window.hooksConfig[hook] : {};
-    var config_type   = window.hooksConfig[type] ? window.hooksConfig[type] : {};
-    var config_target = window.hooksConfig[key] ? window.hooksConfig[key] : {};
+    var configGlobal = domlogger["hooksConfig"]["*"] ? domlogger["hooksConfig"]["*"] : {};
+    var configHook   = domlogger["hooksConfig"][hook] ? domlogger["hooksConfig"][hook] : {};
+    var configType   = domlogger["hooksConfig"][type] ? domlogger["hooksConfig"][type] : {};
+    var configTarget = domlogger["hooksConfig"][key] ? domlogger["hooksConfig"][key] : {};
 
-    return Object.assign({}, config_global, config_target, config_hook, config_type);
+    return domlogger.func["Object.assign"]({}, configGlobal, configTarget, configHook, configType);
 }
 
 const getTargets = (target) => {
-    var attr = target.pop();
+    var attr = domlogger.func["Array.prototype.pop"].call(target);
     var obj  = window;
 
     // In case window.x
     if (target[0] === "window")
-        target.shift();
+        domlogger.func["Array.prototype.shift"].call(target);
 
     for (const t of target) {
         if (!(t in obj))
@@ -89,11 +103,11 @@ const getTargets = (target) => {
 
 const getOwnPropertyDescriptor = (obj, prop) => {
     while (obj) {
-        const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+        const descriptor = domlogger.func["Object.getOwnPropertyDescriptor"](obj, prop);
         if (descriptor) {
             return descriptor;
         }
-        obj = Object.getPrototypeOf(obj);
+        obj = domlogger.func["Object.getPrototypeOf"](obj);
     }
     return undefined;
 }
@@ -103,15 +117,31 @@ const stringify = (args) => {
     if (typeof args === "undefined") {
         args = "undefined";
     } else if (typeof args === "function") {
-        args = args.toString();
+        args = domlogger.func["Function.prototype.toString"].call(args);
     } else if (!(typeof args === "string")) {
-        args = JSON.stringify(args);
+        try {
+            args = domlogger.func["JSON.stringify"](args);
+        // Handle 'Converting circular structure to JSON' error -> ie stringify(window)
+        } catch {
+            args = `${args}`;
+        }
     }
 
     return args
 }
 
-const checkRegexs = (regex, args, def) => {
+const isThisInteresting = (parentObject, thisArg) => {
+    if (!thisArg)
+        return false;
+
+    // Avoit thisArg logging in case of window || document methods (ie: window.postMessage)
+    if (`${parentObject}` === "[object Window]" || `${parentObject}` === "[object HTMLDocument]")
+        return false;
+
+    return true;
+}
+
+const checkRegexs = (target, regex, args, def) => {
     if (!regex) {
         return def;
     }
@@ -119,31 +149,43 @@ const checkRegexs = (regex, args, def) => {
     args = stringify(args);
     for (let r of regex) {
         // Allow the use of variable like location.pathname within the regex value
-        if (r.split(":")[0] === "exec")
-            r = execCode(r, args);
+        if (domlogger.func["String.prototype.split"].call(r, ":")[0] === "exec")
+            r = execCode(target, r, args);
 
         // Check regex
-        try { new RegExp(r) } catch {
-            console.log(`[DOMLogger++] ${r} (regex) is invalid!`);
+        try { new domlogger.func["RegExp"](r) } catch {
+            domlogger.func["console.log"](`[DOMLogger++] ${r} (regex) is invalid!`);
             continue
         };
         
-        if (args.match(r)) {
+        if (domlogger.func["String.prototype.match"].call(args, r)) {
             return true;
         }
     }
     return false;
 }
 
-const execCode = (code, args="") => {
+const checkRequired = (config) => {
+    if (config && config.requiredHooks) {
+        for (const rHook of config.requiredHooks) {
+            if (!domlogger.func["Array.prototype.includes"].call(domlogger["hookTypeHistory"], rHook))
+                return false;
+        }
+    }
+
+    return true;
+}
+
+const execCode = (target, code, args="") => {
     if (!code)
         return args;
 
+    code = code.split(":").splice(1).join(":"); // Remove exec:
     var output = args;
     try {
-        output = Function("args", code)(args);
+        output = domlogger.func["Function"]("args", "target", code)(args, target);
     } catch {
-        console.log(`[DOMLogger++] ${stringify(code)} is an invalid code to evaluate!`);
+        domlogger.func["console.log"](`[DOMLogger++] ${stringify(code)} is an invalid code to evaluate!`);
     }
 
     return output;
@@ -155,6 +197,7 @@ module.exports = {
     getTargets,
     getOwnPropertyDescriptor,
     stringify,
+    isThisInteresting,
     checkRegexs,
     execCode
 }
