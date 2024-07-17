@@ -134,12 +134,10 @@ const isThisInteresting = (parentObject, thisArg) => {
     if (!thisArg)
         return false;
 
-    // Avoid calling toString on search params as that could cause errors depending on the config
-    if (parentObject instanceof URLSearchParams)
-        return true;
+    const type = parentObject[Symbol.toStringTag]
 
     // Avoit thisArg logging in case of window || document methods (ie: window.postMessage)
-    if (`${parentObject}` === "[object Window]" || `${parentObject}` === "[object HTMLDocument]")
+    if (type === "Window" || type === "HTMLDocument")
         return false;
 
     return true;
