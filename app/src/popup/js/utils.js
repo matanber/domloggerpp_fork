@@ -10,7 +10,6 @@ const updateEvent = () => {
         el.onclick = function() {
             window.allowedDomains = window.allowedDomains.filter(d => d !== this.dataset.domain);
             extensionAPI.storage.local.set({ allowedDomains: window.allowedDomains });
-            extensionAPI.runtime.sendMessage({ action: "updateDomains", data: window.allowedDomains });
             updateUIDomains(window.allowedDomains);
         }
     }
@@ -35,7 +34,19 @@ const updateUIHooks = (index, hooksSettings) => {
     hooksList.selectedIndex = index;
 }
 
+const updateUIPwnfox = (checked) => {
+    const pwnfoxSupport = document.getElementById("pwnfoxSupport");
+    pwnfoxSupport.checked = checked;
+}
+
+const updateUIHeaders = (checked) => {
+    const removeHeaders = document.getElementById("removeHeaders");
+    removeHeaders.checked = checked;
+}
+
 export {
     updateUIDomains,
-    updateUIHooks
+    updateUIHooks,
+    updateUIPwnfox,
+    updateUIHeaders
 }
