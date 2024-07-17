@@ -21,6 +21,7 @@
         <div class="container mgb-20">
             <h2 class="mgt-10 mgb-10">Domains</h2>
             <button id="addCurrentDomain" class="mgb-10 add-current-button">Add current domain</button>
+            <button id="addCurrentETLD" class="mgb-10 add-current-button">Add current ETLD+1</button>
             <input type="text" id="domains" name="domains" class="mgb-10" placeholder="mizu.re">
             <div id="allowedDomains"></div>
         </div>
@@ -30,6 +31,20 @@
         <div class="container mgb-20">
             <h2 class="mgt-10 mgb-10">Hooking</h2>
             <select id="hooks" name="hooks"></select>
+        </div>
+
+        <hr>
+
+        <div class="container mgb-20">
+            <h2 class="mgt-10 mgb-10">Misc</h2>
+            <div id="pwnfoxDiv" class="checklist" style="display: none;">
+                <span class="label">PwnFox support</span>
+                <input id="pwnfoxSupport" type="checkbox" class="checkbox">
+            </div>
+            <div class="checklist">
+                <span class="label">Remove response headers</span>
+                <input id="removeHeaders" type="checkbox" class="checkbox">
+            </div>
         </div>
     </main>
 
@@ -48,7 +63,7 @@
                 <use xlink:href="./img/gear-solid.svg#gear-icon"></use>
             </svg>
         </div>
-        <span class="mgb-20">v1.0.4</span>
+        <span class="mgb-20">v1.0.5</span>
     </footer>
 </body>
 

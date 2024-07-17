@@ -8,18 +8,27 @@ import {
     handleSelectHooks,
     // Misc
     handleSettingsNavigation,
+    handlePwnfoxSupport,
+    handleRemoveHeaders,
     // Buttons
     handleRemoveAllDomain,
-    handleAddCurrentDomain
+    handleAddCurrentDomain,
+    handleAddCurrentETLD
 } from "./handlers.js";
 
 import {
     updateUIDomains,
-    updateUIHooks
+    updateUIHooks,
+    updateUIPwnfox,
+    updateUIHeaders
 } from "./utils.js";
 
 
-const initColors = () => {
+const main = async () => {
+    // Clear badge
+    extensionAPI.runtime.sendMessage({ action: "clearBadge" });
+
+    // init
     window.colorsData = {
         textColor: "#C6C6CA",
         backgroundColor: "#292A2D"
@@ -33,16 +42,7 @@ const initColors = () => {
         root.style.setProperty("--background-color", window.colorsData["backgroundColor"]);
         document.body.style.opacity = "1";
     });
-}
 
-const main = async () => {
-    // Color
-    initColors();
-
-    // Clear badge
-    extensionAPI.runtime.sendMessage({ action: "clearBadge" });
-
-    // init
     window.allowedDomains = [];
     extensionAPI.storage.local.get("allowedDomains", (data) => {
         if (data.allowedDomains) {
@@ -63,14 +63,36 @@ const main = async () => {
         updateUIHooks(window.selectedHook, window.hooksData.hooksSettings);
     })
 
+    window.pwnfoxSupport = false;
+    if (typeof browser !== "undefined") {
+        extensionAPI.storage.local.get("pwnfoxSupport", (data) => {
+            if (data.pwnfoxSupport) {
+                window.pwnfoxSupport = data.pwnfoxSupport;
+            }
+            updateUIPwnfox(window.pwnfoxSupport);
+        })
+        document.getElementById("pwnfoxDiv").style.display = "flex";
+    }
+
+    window.removeHeaders = false;
+    extensionAPI.storage.local.get("removeHeaders", (data) => {
+        if (data.removeHeaders) {
+            window.removeHeaders = data.removeHeaders;
+        }
+        updateUIHeaders(window.removeHeaders);
+    })
+
     // Events
     document.getElementById("domains").addEventListener("change", handleAddDomain);
     document.getElementById("hooks").addEventListener("change", handleSelectHooks);
+    document.getElementById("pwnfoxSupport").addEventListener("change", handlePwnfoxSupport);
+    document.getElementById("removeHeaders").addEventListener("change", handleRemoveHeaders);
 
     // Buttons
     document.getElementById("remove").addEventListener("click", handleRemoveAllDomain);
     document.getElementById("settings").addEventListener("click", handleSettingsNavigation);
     document.getElementById("addCurrentDomain").addEventListener("click", handleAddCurrentDomain);
+    document.getElementById("addCurrentETLD").addEventListener("click", handleAddCurrentETLD);
 }
 
 window.addEventListener("DOMContentLoaded", main);

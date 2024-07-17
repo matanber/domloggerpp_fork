@@ -1,19 +1,13 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "DOMLogger++",
     "version": "1.0.5",
-    "description": "DOMLogger++ aims to help finding DOM Based issues.",
-
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "DOMLoggerPP@mizu.re"
-        }
-    },
+    "description": "DOMLogger++ allows you to monitor, intercept, and debug JavaScript sinks based on customizable configurations.",
     "icons": {
         "1399": "icons/icon.png"
     },
 
-    "browser_action": {
+    "action": {
         "default_popup": "src/popup/popup.html",
         "default_icon": {
             "1399": "icons/icon.png"
@@ -30,20 +24,14 @@
         "storage",
         "tabs",
         "notifications",
-        "contextualIdentities",
-        "webRequest",
-        "webRequestBlocking",
+        "declarativeNetRequest"
+    ],
+    "host_permissions": [
         "<all_urls>"
     ],
 
     "background": {
-        "scripts": [
-            "src/background/utils.js",
-            "src/background/handlers.js",
-            "src/background/init.js",
-            "src/background.js"
-        ],
-        "persistent": true
+        "service_worker": "src/background.js"
     },
     "devtools_page": "src/devtools/index.html",
     "content_scripts": [
@@ -59,6 +47,14 @@
         }
     ],
     "web_accessible_resources": [
-        "src/bundle.js"
+        {
+            "resources": [
+                "src/bundle.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ],
+            "use_dynamic_url": false
+        }
     ]
 }
